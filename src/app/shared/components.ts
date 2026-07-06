@@ -13,7 +13,7 @@ import {
   selector: "app-status-badge",
   standalone: true,
   imports: [CommonModule],
-  template: `<span class="badge" [ngClass]="value?.toLowerCase()">{{
+  template: `<span class="badge" [ngClass]="value.toLowerCase()">{{
     value
   }}</span>`,
 })
