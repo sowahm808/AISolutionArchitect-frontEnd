@@ -2,6 +2,7 @@ import { Routes } from "@angular/router";
 import { authGuard, roleGuard } from "./guards/auth.guard";
 import { AppShellComponent } from "./layout/shell.component";
 import { LoginComponent, RegisterComponent } from "./pages/auth.pages";
+import { ProfileComponent } from "./pages/profile.page";
 import {
   ArchitectureModelComponent,
   ArtifactsComponent,
@@ -28,10 +29,11 @@ export const routes: Routes = [
       { path: "projects", component: ProjectListComponent },
       { path: "projects/new", component: CreateProjectComponent },
       { path: "projects/:projectId", component: ProjectOverviewComponent },
-      { path: "projects/:projectId/discovery", component: DiscoveryComponent },
+      { path: "projects/:projectId/discovery", component: DiscoveryComponent, canActivate: [roleGuard(["Admin", "Architect"])] },
       {
         path: "projects/:projectId/architecture-model",
         component: ArchitectureModelComponent,
+        canActivate: [roleGuard(["Admin", "Architect"])],
       },
       { path: "projects/:projectId/artifacts", component: ArtifactsComponent },
       { path: "projects/:projectId/diagrams", component: ArtifactsComponent },
@@ -39,17 +41,19 @@ export const routes: Routes = [
       {
         path: "projects/:projectId/infrastructure",
         component: ArtifactsComponent,
+        canActivate: [roleGuard(["Admin", "Architect"])],
       },
-      { path: "projects/:projectId/kubernetes", component: ArtifactsComponent },
-      { path: "projects/:projectId/cicd", component: ArtifactsComponent },
-      { path: "projects/:projectId/security", component: SecurityComponent },
-      { path: "projects/:projectId/risks", component: RisksComponent },
-      { path: "projects/:projectId/cost", component: CostComponent },
+      { path: "projects/:projectId/kubernetes", component: ArtifactsComponent, canActivate: [roleGuard(["Admin", "Architect"])] },
+      { path: "projects/:projectId/cicd", component: ArtifactsComponent, canActivate: [roleGuard(["Admin", "Architect"])] },
+      { path: "projects/:projectId/security", component: SecurityComponent, canActivate: [roleGuard(["Admin", "Architect", "Security"])] },
+      { path: "projects/:projectId/risks", component: RisksComponent, canActivate: [roleGuard(["Admin", "Architect", "Security"])] },
+      { path: "projects/:projectId/cost", component: CostComponent, canActivate: [roleGuard(["Admin", "Architect"])] },
       {
         path: "projects/:projectId/presentation",
         component: PresentationComponent,
       },
-      { path: "projects/:projectId/export", component: SimplePageComponent },
+      { path: "projects/:projectId/export", component: SimplePageComponent, canActivate: [roleGuard(["Admin", "Architect"])] },
+      { path: "profile", component: ProfileComponent },
       {
         path: "settings/organization",
         component: SimplePageComponent,
