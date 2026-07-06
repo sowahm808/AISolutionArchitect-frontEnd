@@ -1,17 +1,10 @@
-@import "tailwindcss";
-
-@theme {
-  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
-  --color-architect-50: #eef6ff;
-  --color-architect-100: #d9ebff;
-  --color-architect-500: #2563eb;
-  --color-architect-600: #1d4ed8;
-  --color-architect-950: #0b1220;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   :root {
-    font-family: var(--font-sans);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
     color: #172033;
     background: #f4f7fb;
   }
