@@ -1,2 +1,13 @@
-import { TestBed } from '@angular/core/testing'; import { provideRouter } from '@angular/router'; import { authGuard } from './auth.guard'; import { AppStore } from '../core/app.store';
-describe('authGuard',()=>{it('allows authenticated users',()=>{TestBed.configureTestingModule({providers:[provideRouter([])]}); TestBed.inject(AppStore).setToken('x'); expect(TestBed.runInInjectionContext(()=>authGuard({} as any,{} as any))).toBeTrue();});});
+import { TestBed } from "@angular/core/testing";
+import { provideRouter } from "@angular/router";
+import { authGuard } from "./auth.guard";
+import { AppStore } from "../core/app.store";
+describe("authGuard", () => {
+  it("allows authenticated users", () => {
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.inject(AppStore).setToken("x");
+    expect(
+      TestBed.runInInjectionContext(() => authGuard({} as any, {} as any)),
+    ).toBeTrue();
+  });
+});

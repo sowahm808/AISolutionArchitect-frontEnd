@@ -1,3 +1,69 @@
-import { Component, inject } from '@angular/core'; import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms'; import { Router, RouterLink } from '@angular/router'; import { AuthService } from '../services/api.service';
-@Component({selector:'app-login',standalone:true,imports:[ReactiveFormsModule,RouterLink],template:`<section class="auth"><form [formGroup]="form" (ngSubmit)="submit()"><h1>Sign in</h1><p>Access architecture workspaces, artifacts and exports.</p><input formControlName="email" placeholder="Email"><input formControlName="password" type="password" placeholder="Password"><button class="primary" [disabled]="form.invalid">Login</button><a routerLink="/register">Create account</a></form></section>`}) export class LoginComponent{fb=inject(FormBuilder);auth=inject(AuthService);router=inject(Router);form=this.fb.nonNullable.group({email:['architect@contoso.com',[Validators.required,Validators.email]],password:['password',[Validators.required]]});submit(){this.auth.login(this.form.value.email!).subscribe(()=>this.router.navigateByUrl('/dashboard'))}}
-@Component({selector:'app-register',standalone:true,imports:[ReactiveFormsModule,RouterLink],template:`<section class="auth"><form [formGroup]="form" (ngSubmit)="submit()"><h1>Register organization</h1><input formControlName="name" placeholder="Name"><input formControlName="email" placeholder="Email"><input formControlName="password" type="password" placeholder="Password"><button class="primary">Create workspace</button><a routerLink="/login">Back to login</a></form></section>`}) export class RegisterComponent{fb=inject(FormBuilder);auth=inject(AuthService);router=inject(Router);form=this.fb.nonNullable.group({name:['',Validators.required],email:['',Validators.email],password:['',Validators.required]});submit(){this.auth.register(this.form.value.email!).subscribe(()=>this.router.navigateByUrl('/dashboard'))}}
+import { Component, inject } from "@angular/core";
+import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
+import { Router, RouterLink } from "@angular/router";
+import { AuthService } from "../services/api.service";
+@Component({
+  selector: "app-login",
+  standalone: true,
+  imports: [ReactiveFormsModule, RouterLink],
+  template: `<section class="auth">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <h1>Sign in</h1>
+      <p>Access architecture workspaces, artifacts and exports.</p>
+      <input formControlName="email" placeholder="Email" /><input
+        formControlName="password"
+        type="password"
+        placeholder="Password"
+      /><button class="primary" [disabled]="form.invalid">Login</button
+      ><a routerLink="/register">Create account</a>
+    </form>
+  </section>`,
+})
+export class LoginComponent {
+  fb = inject(FormBuilder);
+  auth = inject(AuthService);
+  router = inject(Router);
+  form = this.fb.nonNullable.group({
+    email: ["architect@contoso.com", [Validators.required, Validators.email]],
+    password: ["password", [Validators.required]],
+  });
+  submit() {
+    this.auth
+      .login(this.form.value.email!)
+      .subscribe(() => this.router.navigateByUrl("/dashboard"));
+  }
+}
+@Component({
+  selector: "app-register",
+  standalone: true,
+  imports: [ReactiveFormsModule, RouterLink],
+  template: `<section class="auth">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <h1>Register organization</h1>
+      <input formControlName="name" placeholder="Name" /><input
+        formControlName="email"
+        placeholder="Email"
+      /><input
+        formControlName="password"
+        type="password"
+        placeholder="Password"
+      /><button class="primary">Create workspace</button
+      ><a routerLink="/login">Back to login</a>
+    </form>
+  </section>`,
+})
+export class RegisterComponent {
+  fb = inject(FormBuilder);
+  auth = inject(AuthService);
+  router = inject(Router);
+  form = this.fb.nonNullable.group({
+    name: ["", Validators.required],
+    email: ["", Validators.email],
+    password: ["", Validators.required],
+  });
+  submit() {
+    this.auth
+      .register(this.form.value.email!)
+      .subscribe(() => this.router.navigateByUrl("/dashboard"));
+  }
+}
