@@ -1,0 +1,9 @@
+.shell { min-height: 100vh; }
+.shell__nav { width: 304px; border-right: 1px solid var(--mat-sys-outline-variant); }
+.brand { gap: 12px; height: 72px; }
+.brand span { white-space: normal; line-height: 1.2; }
+.topbar { position: sticky; top: 0; z-index: 2; border-bottom: 1px solid var(--mat-sys-outline-variant); background: color-mix(in srgb, var(--mat-sys-surface) 92%, transparent); backdrop-filter: blur(12px); }
+.spacer { flex: 1 1 auto; }
+.content { padding: 32px; }
+a.active { background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); }
+@media (max-width: 900px) { .shell__nav { width: 250px; } .content { padding: 20px; } }

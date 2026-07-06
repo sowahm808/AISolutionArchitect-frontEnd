@@ -1,0 +1,17 @@
+<section class="auth">
+  <mat-card class="auth-card">
+    <mat-card-header>
+      <mat-card-title>{{ mode === 'login' ? 'Sign in' : 'Register organization' }}</mat-card-title>
+      <mat-card-subtitle *ngIf="mode === 'login'">Access architecture workspaces, artifacts and exports.</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field *ngIf="mode === 'register'" appearance="outline"><mat-label>Name</mat-label><input matInput formControlName="name" /></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Email</mat-label><input matInput formControlName="email" /></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Password</mat-label><input matInput formControlName="password" type="password" /></mat-form-field>
+        <button mat-flat-button color="primary" [disabled]="form.invalid">{{ mode === 'login' ? 'Login' : 'Create workspace' }}</button>
+        <a mat-button [routerLink]="mode === 'login' ? '/register' : '/login'">{{ mode === 'login' ? 'Create account' : 'Back to login' }}</a>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</section>
