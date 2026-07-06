@@ -34,19 +34,19 @@ export class AuthService {
       .pipe(tap((response) => this.applyAuthResponse(response)));
   }
 
-  register(name: string, email: string, password: string): Observable<AuthResponse> {
+  register(name: string, email: string, password: string, role = "Architect"): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${this.api}/auth/register`, { name, email, password })
+      .post<AuthResponse>(`${this.api}/auth/register`, { name, email, password, role })
       .pipe(tap((response) => this.applyAuthResponse(response)));
   }
 
   logout() {
-    this.store.user.set(null);
+    this.store.setUser(null);
     this.store.setToken(null);
   }
 
   private applyAuthResponse(response: AuthResponse) {
-    this.store.user.set(response.user);
+    this.store.setUser(response.user);
     this.store.setToken(response.token);
   }
 }

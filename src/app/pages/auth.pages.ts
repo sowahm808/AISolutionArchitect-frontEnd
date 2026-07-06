@@ -42,8 +42,9 @@ export class RegisterComponent {
     name: ["", Validators.required],
     email: ["", Validators.email],
     password: ["", Validators.required],
+    role: ["Architect", Validators.required],
   });
   submit() {
-    this.auth.register(this.form.value.name!, this.form.value.email!, this.form.value.password!).subscribe(() => this.router.navigateByUrl("/dashboard"));
+    this.auth.register(this.form.value.name!, this.form.value.email!, this.form.value.password!, this.form.value.role!).subscribe(() => this.router.navigateByUrl("/dashboard"));
   }
 }

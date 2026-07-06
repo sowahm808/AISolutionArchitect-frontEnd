@@ -9,6 +9,7 @@
         <mat-form-field *ngIf="mode === 'register'" appearance="outline"><mat-label>Name</mat-label><input matInput formControlName="name" /></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Email</mat-label><input matInput formControlName="email" /></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Password</mat-label><input matInput formControlName="password" type="password" /></mat-form-field>
+        <mat-form-field *ngIf="mode === 'register'" appearance="outline"><mat-label>Role</mat-label><mat-select formControlName="role"><mat-option value="Admin">Admin</mat-option><mat-option value="Architect">Architect</mat-option><mat-option value="Security">Security</mat-option><mat-option value="Viewer">Viewer</mat-option></mat-select></mat-form-field>
         <button mat-flat-button color="primary" [disabled]="form.invalid">{{ mode === 'login' ? 'Login' : 'Create workspace' }}</button>
         <a mat-button [routerLink]="mode === 'login' ? '/register' : '/login'">{{ mode === 'login' ? 'Create account' : 'Back to login' }}</a>
       </form>
