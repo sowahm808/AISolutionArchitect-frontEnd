@@ -2,345 +2,52 @@ import { Component, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { RouterLink } from "@angular/router";
-import {
-  PageHeaderComponent,
-  ProjectCardComponent,
-  EmptyStateComponent,
-  GenerationProgressComponent,
-  RiskTableComponent,
-  SecurityFindingCardComponent,
-  CostBreakdownComponent,
-  MarkdownViewerComponent,
-  MermaidViewerComponent,
-  CodeEditorComponent,
-} from "../shared/components";
-import {
-  ArtifactService,
-  ArchitectureModelService,
-  DiscoveryService,
-  mock,
-  ProjectService,
-} from "../services/api.service";
-@Component({
-  selector: "app-dashboard",
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    PageHeaderComponent,
-    ProjectCardComponent,
-  ],
-  template: `<app-page-header
-      title="Dashboard"
-      subtitle="Track initiatives, generation status, risk and cost."
-      ><a class="primary" routerLink="/projects/new"
-        >New Project</a
-      ></app-page-header
-    >
-    <section class="grid">
-      <app-project-card *ngFor="let p of projects()" [project]="p" />
-    </section>`,
-})
-export class DashboardComponent {
-  projects = signal(mock.projects);
+import { PageHeaderComponent, ProjectCardComponent, GenerationProgressComponent, RiskTableComponent, SecurityFindingCardComponent, CostBreakdownComponent, MarkdownViewerComponent, MermaidViewerComponent, CodeEditorComponent } from "../shared/components";
+import { mock } from "../services/api.service";
+import { MATERIAL_IMPORTS } from "../material.imports";
+
+const MAIN_IMPORTS = [CommonModule, RouterLink, ReactiveFormsModule, PageHeaderComponent, ProjectCardComponent, GenerationProgressComponent, RiskTableComponent, SecurityFindingCardComponent, CostBreakdownComponent, MarkdownViewerComponent, MermaidViewerComponent, CodeEditorComponent, ...MATERIAL_IMPORTS];
+const META = {
+  dashboard: ["Dashboard", "Track initiatives, generation status, risk and cost.", "/projects/new", "New Project"],
+  projects: ["Projects", "Enterprise architecture project portfolio.", "/projects/new", "Create"],
+  create: ["Create Project", "Describe the initiative so the architect can start discovery.", "", ""],
+  overview: ["Project Overview", "Canonical workspace and generation controls.", "discovery", "Continue Discovery"],
+  discovery: ["Discovery Interview", "Structured senior architect discovery, not a chatbot.", "", ""],
+  model: ["Architecture Model", "Canonical model used to generate all artifacts.", "", ""],
+  artifacts: ["Artifact Workspace", "Review, edit, regenerate, copy and download architecture outputs.", "", ""],
+  security: ["Security Review", "Identity, network, encryption, secrets, RBAC, compliance and threat model.", "", ""],
+  risks: ["Risk Assessment", "Prioritized migration and architecture risk register.", "", ""],
+  cost: ["Cost Estimate", "Monthly, yearly and category-level estimates with assumptions.", "", ""],
+  presentation: ["Executive Presentation Preview", "Board-ready narrative and slide outline.", "", ""],
+  simple: ["Workspace", "Enterprise architecture content.", "", ""],
+} as const;
+
+class MaterialPageBase {
+  page: string = "simple"; projects = signal(mock.projects); form: any = null; project: any = mock.projects[0]; job: any = null; questions: any[] = []; model: any = mock.model; sections: any[] = []; artifacts: any[] = []; selected: any = mock.artifacts[0]; findings: any[] = []; risks: any[] = []; cost: any = mock.cost; slides: string[] = []; items: string[] = [];
+  get title() { return META[this.page as keyof typeof META][0]; } get subtitle() { return META[this.page as keyof typeof META][1]; } get actionLink() { return META[this.page as keyof typeof META][2]; } get actionLabel() { return META[this.page as keyof typeof META][3]; }
 }
-@Component({
-  selector: "app-project-list",
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    PageHeaderComponent,
-    ProjectCardComponent,
-    EmptyStateComponent,
-  ],
-  template: `<app-page-header
-      title="Projects"
-      subtitle="Enterprise architecture project portfolio."
-      ><a class="primary" routerLink="/projects/new">Create</a></app-page-header
-    ><app-project-card *ngFor="let p of projects()" [project]="p" />`,
-})
-export class ProjectListComponent {
-  projects = signal(mock.projects);
-}
-@Component({
-  selector: "app-create-project",
-  standalone: true,
-  imports: [ReactiveFormsModule, PageHeaderComponent],
-  template: `<app-page-header
-      title="Create Project"
-      subtitle="Describe the initiative so the architect can start discovery."
-    />
-    <form class="card form" [formGroup]="form">
-      <input formControlName="name" placeholder="Project name" /><input
-        formControlName="company"
-        placeholder="Company/organization"
-      /><input formControlName="industry" placeholder="Industry" /><select
-        formControlName="cloudProvider"
-      >
-        <option>Azure</option>
-        <option>AWS</option>
-        <option>GCP</option>
-        <option>Hybrid</option></select
-      ><input
-        formControlName="migrationType"
-        placeholder="Migration type"
-      /><textarea
-        formControlName="businessProblem"
-        placeholder="Business problem"
-      ></textarea
-      ><textarea
-        formControlName="currentArchitecture"
-        placeholder="Current architecture summary"
-      ></textarea
-      ><textarea
-        formControlName="targetGoal"
-        placeholder="Target architecture goal"
-      ></textarea
-      ><input
-        formControlName="compliance"
-        placeholder="Compliance requirements"
-      /><input formControlName="budget" placeholder="Budget range" /><input
-        formControlName="timeline"
-        placeholder="Timeline"
-      /><textarea formControlName="notes" placeholder="Notes"></textarea
-      ><button class="primary">Start discovery</button>
-    </form>`,
-})
-export class CreateProjectComponent {
-  fb = inject(FormBuilder);
-  form = this.fb.nonNullable.group({
-    name: ["", Validators.required],
-    company: [""],
-    industry: [""],
-    cloudProvider: ["Azure"],
-    migrationType: [""],
-    businessProblem: [""],
-    currentArchitecture: [""],
-    targetGoal: [""],
-    compliance: [""],
-    budget: [""],
-    timeline: [""],
-    notes: [""],
-  });
-}
-@Component({
-  selector: "app-project-overview",
-  standalone: true,
-  imports: [
-    PageHeaderComponent,
-    ProjectCardComponent,
-    GenerationProgressComponent,
-    RouterLink,
-  ],
-  template: `<app-page-header
-      title="Project Overview"
-      subtitle="Canonical workspace and generation controls."
-      ><a class="primary" routerLink="discovery"
-        >Continue Discovery</a
-      ></app-page-header
-    ><app-project-card [project]="project" /><app-generation-progress
-      [job]="job"
-    />`,
-})
-export class ProjectOverviewComponent {
-  project = mock.projects[0];
-  job = {
-    id: "j1",
-    status: "queued" as const,
-    progress: 15,
-    categories: { discovery: 60, model: 0 },
-    message: "Waiting for architect inputs",
-  };
-}
-@Component({
-  selector: "app-discovery",
-  standalone: true,
-  imports: [CommonModule, PageHeaderComponent, GenerationProgressComponent],
-  template: `<app-page-header
-      title="Discovery Interview"
-      subtitle="Structured senior architect discovery, not a chatbot."
-    />
-    <div class="chat">
-      <article class="question" *ngFor="let q of questions">
-        <b>{{ q.category }}</b>
-        <h3>{{ q.text }}</h3>
-        <textarea
-          placeholder="Answer with known facts, constraints and assumptions"
-        ></textarea
-        ><button>Skip optional</button>
-      </article>
-    </div>
-    <aside class="card">
-      <h3>Extracted assumptions</h3>
-      <p>Azure landing zone exists; PCI data is in scope.</p>
-      <h3>Missing information</h3>
-      <p>RTO/RPO and integration volumes are incomplete.</p>
-      <button class="primary">Generate Architecture</button>
-    </aside>`,
-})
-export class DiscoveryComponent {
-  questions = mock.questions;
-}
-@Component({
-  selector: "app-model",
-  standalone: true,
-  imports: [CommonModule, PageHeaderComponent, RiskTableComponent],
-  template: `<app-page-header
-      title="Architecture Model"
-      subtitle="Canonical model used to generate all artifacts."
-    />
-    <section class="grid">
-      <article class="card" *ngFor="let s of sections">
-        <h3>{{ s[0] }}</h3>
-        <p>{{ s[1] }}</p>
-      </article>
-    </section>
-    <app-risk-table [risks]="model.risks" />`,
-})
-export class ArchitectureModelComponent {
-  model = mock.model;
-  sections = Object.entries(mock.model)
-    .filter(([k]) => k !== "risks")
-    .map(([k, v]) => [k, Array.isArray(v) ? v.join(", ") : v]);
-}
-@Component({
-  selector: "app-artifacts",
-  standalone: true,
-  imports: [
-    CommonModule,
-    PageHeaderComponent,
-    MarkdownViewerComponent,
-    MermaidViewerComponent,
-    CodeEditorComponent,
-  ],
-  template: `<app-page-header
-      [title]="title"
-      subtitle="Review, edit, regenerate, copy and download architecture outputs."
-    />
-    <div class="workspace">
-      <nav>
-        <button *ngFor="let a of artifacts" (click)="selected = a">
-          {{ a.name }}
-        </button>
-      </nav>
-      <section class="card">
-        <div class="split">
-          <h2>{{ selected.name }}</h2>
-          <button>Regenerate</button><button>Save edits</button
-          ><button>Copy</button><button>Download</button>
-        </div>
-        <app-markdown-viewer
-          *ngIf="selected.language === 'markdown'"
-          [content]="selected.content"
-        /><app-mermaid-viewer
-          *ngIf="selected.language === 'mermaid'"
-          [source]="selected.content"
-        /><app-code-editor
-          *ngIf="
-            selected.language !== 'markdown' && selected.language !== 'mermaid'
-          "
-          [content]="selected.content"
-          [language]="selected.language"
-        />
-      </section>
-    </div>`,
-})
-export class ArtifactsComponent {
-  title = "Artifact Workspace";
-  artifacts = mock.artifacts;
-  selected = mock.artifacts[0];
-}
-@Component({
-  selector: "app-security",
-  standalone: true,
-  imports: [CommonModule, PageHeaderComponent, SecurityFindingCardComponent],
-  template: `<app-page-header
-      title="Security Review"
-      subtitle="Identity, network, encryption, secrets, RBAC, compliance and threat model."
-    />
-    <div class="score">Security score 86%</div>
-    <app-security-finding-card *ngFor="let f of findings" [finding]="f" />`,
-})
-export class SecurityComponent {
-  findings = mock.findings;
-}
-@Component({
-  selector: "app-risks",
-  standalone: true,
-  imports: [PageHeaderComponent, RiskTableComponent],
-  template: `<app-page-header
-      title="Risk Assessment"
-      subtitle="Prioritized migration and architecture risk register."
-    /><app-risk-table [risks]="risks" />`,
-})
-export class RisksComponent {
-  risks = mock.risks;
-}
-@Component({
-  selector: "app-cost",
-  standalone: true,
-  imports: [PageHeaderComponent, CostBreakdownComponent],
-  template: `<app-page-header
-      title="Cost Estimate"
-      subtitle="Monthly, yearly and category-level estimates with assumptions."
-    /><app-cost-breakdown [cost]="cost" />
-    <div class="card">
-      <h3>Assumptions</h3>
-      <p>{{ cost.assumptions.join("; ") }}</p>
-    </div>`,
-})
-export class CostComponent {
-  cost = mock.cost;
-}
-@Component({
-  selector: "app-presentation",
-  standalone: true,
-  imports: [CommonModule, PageHeaderComponent],
-  template: `<app-page-header
-      title="Executive Presentation Preview"
-      subtitle="Board-ready narrative and slide outline."
-    />
-    <article class="slide" *ngFor="let s of slides">
-      <h2>{{ s }}</h2>
-      <p>
-        Concise executive message, decision point, and supporting architecture
-        evidence.
-      </p>
-    </article>`,
-})
-export class PresentationComponent {
-  slides = [
-    "Executive Summary",
-    "Business Problem",
-    "Current State",
-    "Future State",
-    "Architecture Overview",
-    "Benefits",
-    "Cost Estimate",
-    "Risk Summary",
-    "Roadmap",
-    "Recommendation",
-  ];
-}
-@Component({
-  selector: "app-simple",
-  standalone: true,
-  imports: [CommonModule, PageHeaderComponent],
-  template: `<app-page-header [title]="title" [subtitle]="subtitle" />
-    <section class="card">
-      <ng-container *ngFor="let item of items"
-        ><p>{{ item }}</p></ng-container
-      >
-    </section>`,
-})
-export class SimplePageComponent {
-  title = "Workspace";
-  subtitle = "Enterprise architecture content.";
-  items = [
-    "Version selector",
-    "Clear empty states",
-    "Download ZIP, PDF, DOCX, PPTX",
-    "Role-based actions",
-  ];
-}
+
+@Component({ selector: "app-dashboard", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
+export class DashboardComponent extends MaterialPageBase { override page = "dashboard"; override projects = signal(mock.projects); }
+@Component({ selector: "app-project-list", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
+export class ProjectListComponent extends MaterialPageBase { override page = "projects"; override projects = signal(mock.projects); }
+@Component({ selector: "app-create-project", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
+export class CreateProjectComponent extends MaterialPageBase { override page = "create"; fb = inject(FormBuilder); form = this.fb.nonNullable.group({ name: ["", Validators.required], company: [""], industry: [""], cloudProvider: ["Azure"], migrationType: [""], businessProblem: [""], currentArchitecture: [""], targetGoal: [""], compliance: [""], budget: [""], timeline: [""], notes: [""] }); }
+@Component({ selector: "app-project-overview", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
+export class ProjectOverviewComponent extends MaterialPageBase { override page = "overview"; project = mock.projects[0]; job = { id: "j1", status: "queued" as const, progress: 15, categories: { discovery: 60, model: 0 }, message: "Waiting for architect inputs" }; }
+@Component({ selector: "app-discovery", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
+export class DiscoveryComponent extends MaterialPageBase { override page = "discovery"; questions = mock.questions; }
+@Component({ selector: "app-model", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
+export class ArchitectureModelComponent extends MaterialPageBase { override page = "model"; model = mock.model; sections = Object.entries(mock.model).filter(([k]) => k !== "risks").map(([k, v]) => [k, Array.isArray(v) ? v.join(", ") : v]); }
+@Component({ selector: "app-artifacts", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
+export class ArtifactsComponent extends MaterialPageBase { override page = "artifacts"; artifacts = mock.artifacts; selected = mock.artifacts[0]; }
+@Component({ selector: "app-security", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
+export class SecurityComponent extends MaterialPageBase { override page = "security"; findings = mock.findings; }
+@Component({ selector: "app-risks", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
+export class RisksComponent extends MaterialPageBase { override page = "risks"; risks = mock.risks; }
+@Component({ selector: "app-cost", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
+export class CostComponent extends MaterialPageBase { override page = "cost"; cost = mock.cost; }
+@Component({ selector: "app-presentation", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
+export class PresentationComponent extends MaterialPageBase { override page = "presentation"; slides = ["Executive Summary", "Business Problem", "Current State", "Future State", "Architecture Overview", "Benefits", "Cost Estimate", "Risk Summary", "Roadmap", "Recommendation"]; }
+@Component({ selector: "app-simple", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
+export class SimplePageComponent extends MaterialPageBase { override page = "simple"; items = ["Version selector", "Clear empty states", "Download ZIP, PDF, DOCX, PPTX", "Role-based actions"]; }

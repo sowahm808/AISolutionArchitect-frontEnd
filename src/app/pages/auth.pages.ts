@@ -1,25 +1,19 @@
 import { Component, inject } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../services/api.service";
+import { MATERIAL_IMPORTS } from "../material.imports";
+
 @Component({
   selector: "app-login",
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
-  template: `<section class="auth">
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <h1>Sign in</h1>
-      <p>Access architecture workspaces, artifacts and exports.</p>
-      <input formControlName="email" placeholder="Email" /><input
-        formControlName="password"
-        type="password"
-        placeholder="Password"
-      /><button class="primary" [disabled]="form.invalid">Login</button
-      ><a routerLink="/register">Create account</a>
-    </form>
-  </section>`,
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ...MATERIAL_IMPORTS],
+  templateUrl: "./auth.pages.html",
+  styleUrl: "./auth.pages.css",
 })
 export class LoginComponent {
+  mode = "login";
   fb = inject(FormBuilder);
   auth = inject(AuthService);
   router = inject(Router);
@@ -28,31 +22,19 @@ export class LoginComponent {
     password: ["password", [Validators.required]],
   });
   submit() {
-    this.auth
-      .login(this.form.value.email!)
-      .subscribe(() => this.router.navigateByUrl("/dashboard"));
+    this.auth.login(this.form.value.email!).subscribe(() => this.router.navigateByUrl("/dashboard"));
   }
 }
+
 @Component({
   selector: "app-register",
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
-  template: `<section class="auth">
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <h1>Register organization</h1>
-      <input formControlName="name" placeholder="Name" /><input
-        formControlName="email"
-        placeholder="Email"
-      /><input
-        formControlName="password"
-        type="password"
-        placeholder="Password"
-      /><button class="primary">Create workspace</button
-      ><a routerLink="/login">Back to login</a>
-    </form>
-  </section>`,
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ...MATERIAL_IMPORTS],
+  templateUrl: "./auth.pages.html",
+  styleUrl: "./auth.pages.css",
 })
 export class RegisterComponent {
+  mode = "register";
   fb = inject(FormBuilder);
   auth = inject(AuthService);
   router = inject(Router);
@@ -62,8 +44,6 @@ export class RegisterComponent {
     password: ["", Validators.required],
   });
   submit() {
-    this.auth
-      .register(this.form.value.email!)
-      .subscribe(() => this.router.navigateByUrl("/dashboard"));
+    this.auth.register(this.form.value.email!).subscribe(() => this.router.navigateByUrl("/dashboard"));
   }
 }
