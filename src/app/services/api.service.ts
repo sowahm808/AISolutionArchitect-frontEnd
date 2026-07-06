@@ -1,122 +1,175 @@
 import { Injectable, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { of, delay } from "rxjs";
+import { Observable, tap } from "rxjs";
 import { environment } from "../../environments/environment";
 import { AppStore } from "../core/app.store";
-import * as mock from "./mock-data";
-import { Project } from "../models/domain";
+import {
+  ArchitectureModel,
+  Artifact,
+  AuditLog,
+  CostEstimate,
+  DiscoveryAnswer,
+  DiscoveryQuestion,
+  GenerationJob,
+  Organization,
+  Project,
+  SecurityFinding,
+  User,
+} from "../models/domain";
+
+interface AuthResponse {
+  token: string;
+  user: User;
+}
+
 @Injectable({ providedIn: "root" })
 export class AuthService {
-  store = inject(AppStore);
-  login(email: string) {
-    this.store.user.set({
-      id: "u1",
-      name: "Ava Architect",
-      email,
-      role: "Admin",
-      organizationId: "o1",
-    });
-    this.store.setToken("demo-jwt");
-    return of(true).pipe(delay(250));
+  private readonly http = inject(HttpClient);
+  private readonly store = inject(AppStore);
+  private readonly api = environment.apiUrl;
+
+  login(email: string, password: string): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.api}/auth/login`, { email, password })
+      .pipe(tap((response) => this.applyAuthResponse(response)));
   }
-  register(email: string) {
-    return this.login(email);
+
+  register(name: string, email: string, password: string): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.api}/auth/register`, { name, email, password })
+      .pipe(tap((response) => this.applyAuthResponse(response)));
   }
+
   logout() {
     this.store.user.set(null);
     this.store.setToken(null);
   }
+
+  private applyAuthResponse(response: AuthResponse) {
+    this.store.user.set(response.user);
+    this.store.setToken(response.token);
+  }
 }
+
 @Injectable({ providedIn: "root" })
 export class ProjectService {
-  http = inject(HttpClient);
-  api = environment.apiUrl;
+  private readonly http = inject(HttpClient);
+  private readonly api = environment.apiUrl;
+
   list() {
-    return of(mock.projects).pipe(delay(250));
+    return this.http.get<Project[]>(`${this.api}/projects`);
   }
+
   get(id: string) {
-    return of(mock.projects.find((p) => p.id === id) ?? mock.projects[0]).pipe(
-      delay(150),
-    );
+    return this.http.get<Project>(`${this.api}/projects/${id}`);
   }
-  create(p: Partial<Project>) {
-    return of({
-      ...mock.projects[0],
-      ...p,
-      id: crypto.randomUUID(),
-      completion: 5,
-      status: "Discovery",
-    } as Project).pipe(delay(300));
+
+  create(project: Partial<Project>) {
+    return this.http.post<Project>(`${this.api}/projects`, project);
   }
 }
+
 @Injectable({ providedIn: "root" })
 export class DiscoveryService {
-  questions() {
-    return of(mock.questions).pipe(delay(200));
+  private readonly http = inject(HttpClient);
+  private readonly api = environment.apiUrl;
+
+  questions(projectId: string) {
+    return this.http.get<DiscoveryQuestion[]>(`${this.api}/projects/${projectId}/discovery/questions`);
   }
-  saveDraft() {
-    return of(true).pipe(delay(150));
+
+  saveDraft(projectId: string, answers: DiscoveryAnswer[]) {
+    return this.http.put<DiscoveryAnswer[]>(`${this.api}/projects/${projectId}/discovery/answers`, { answers });
   }
 }
+
 @Injectable({ providedIn: "root" })
 export class ArchitectureModelService {
-  get() {
-    return of(mock.model).pipe(delay(200));
+  private readonly http = inject(HttpClient);
+  private readonly api = environment.apiUrl;
+
+  get(projectId: string) {
+    return this.http.get<ArchitectureModel>(`${this.api}/projects/${projectId}/architecture-model`);
   }
-  generate() {
-    return of({
-      id: "job1",
-      status: "running" as const,
-      progress: 42,
-      categories: { model: 70, artifacts: 20, security: 35 },
-      message: "Synthesizing target architecture",
-    }).pipe(delay(400));
+
+  generate(projectId: string) {
+    return this.http.post<GenerationJob>(`${this.api}/projects/${projectId}/architecture-model/generate`, {});
   }
 }
+
 @Injectable({ providedIn: "root" })
 export class ArtifactService {
-  list() {
-    return of(mock.artifacts).pipe(delay(200));
+  private readonly http = inject(HttpClient);
+  private readonly api = environment.apiUrl;
+
+  list(projectId: string, type?: string) {
+    const params = type ? { type } : undefined;
+    return this.http.get<Artifact[]>(`${this.api}/projects/${projectId}/artifacts`, { params });
   }
-  save() {
-    return of(true).pipe(delay(150));
+
+  save(projectId: string, artifact: Artifact) {
+    return this.http.put<Artifact>(`${this.api}/projects/${projectId}/artifacts/${artifact.id}`, artifact);
   }
 }
+
 @Injectable({ providedIn: "root" })
 export class ExportService {
-  exportPackage(format: string) {
-    return of({ url: "#", format }).pipe(delay(250));
+  private readonly http = inject(HttpClient);
+  private readonly api = environment.apiUrl;
+
+  exportPackage(projectId: string, format: string) {
+    return this.http.post<{ url: string; format: string }>(`${this.api}/projects/${projectId}/exports`, { format });
   }
 }
+
 @Injectable({ providedIn: "root" })
 export class OrganizationService {
+  private readonly http = inject(HttpClient);
+  private readonly api = environment.apiUrl;
+
   get() {
-    return of({
-      id: "o1",
-      name: "Contoso Architecture Office",
-      industry: "Financial Services",
-      plan: "Enterprise",
-    }).pipe(delay(150));
+    return this.http.get<Organization>(`${this.api}/organization`);
   }
 }
+
 @Injectable({ providedIn: "root" })
 export class UserService {
+  private readonly http = inject(HttpClient);
+  private readonly api = environment.apiUrl;
+
   list() {
-    return of([
-      {
-        id: "u1",
-        name: "Ava Architect",
-        email: "ava@contoso.com",
-        role: "Admin",
-        organizationId: "o1",
-      },
-    ]).pipe(delay(150));
+    return this.http.get<User[]>(`${this.api}/users`);
   }
 }
+
 @Injectable({ providedIn: "root" })
 export class AuditLogService {
+  private readonly http = inject(HttpClient);
+  private readonly api = environment.apiUrl;
+
   list() {
-    return of(mock.logs).pipe(delay(150));
+    return this.http.get<AuditLog[]>(`${this.api}/audit-logs`);
   }
 }
-export { mock };
+
+@Injectable({ providedIn: "root" })
+export class ReviewService {
+  private readonly http = inject(HttpClient);
+  private readonly api = environment.apiUrl;
+
+  securityFindings(projectId: string) {
+    return this.http.get<SecurityFinding[]>(`${this.api}/projects/${projectId}/security/findings`);
+  }
+
+  risks(projectId: string) {
+    return this.http.get<ArchitectureModel["risks"]>(`${this.api}/projects/${projectId}/risks`);
+  }
+
+  cost(projectId: string) {
+    return this.http.get<CostEstimate>(`${this.api}/projects/${projectId}/cost`);
+  }
+
+  presentation(projectId: string) {
+    return this.http.get<string[]>(`${this.api}/projects/${projectId}/presentation`);
+  }
+}

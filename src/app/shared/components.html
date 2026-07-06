@@ -12,7 +12,7 @@
   <mat-card *ngSwitchCase="'progress'"><mat-card-header><mat-card-title>Generation progress</mat-card-title><mat-card-subtitle>{{ job?.status || 'idle' }}</mat-card-subtitle></mat-card-header><mat-card-content><mat-progress-bar mode="determinate" [value]="job?.progress || 0" /><p>{{ job?.message || 'Ready to generate enterprise architecture artifacts.' }}</p><mat-chip-set><mat-chip *ngFor="let c of categories()">{{ c[0] }} {{ c[1] }}%</mat-chip></mat-chip-set></mat-card-content></mat-card>
 
   <div *ngSwitchCase="'markdown'" class="markdown" [innerHTML]="html()"></div>
-  <div *ngSwitchCase="'mermaid'" class="diagram"><pre>{{ source }}</pre><p class="muted">Mermaid preview placeholder with source/export controls.</p></div>
+  <div *ngSwitchCase="'mermaid'" class="diagram"><pre>{{ source }}</pre><p class="muted">Mermaid source preview with export controls.</p></div>
   <mat-form-field *ngSwitchCase="'code'" appearance="outline" class="code-field"><mat-label>{{ language }} editor</mat-label><textarea matInput class="code" [(ngModel)]="content"></textarea></mat-form-field>
 
   <mat-tab-group *ngSwitchCase="'tabs'"><mat-tab *ngFor="let a of artifacts" [label]="a.type"></mat-tab></mat-tab-group><ng-content *ngSwitchCase="'tabs'" />

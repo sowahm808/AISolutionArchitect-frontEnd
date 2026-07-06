@@ -6,7 +6,7 @@
     </mat-toolbar>
 
     <mat-nav-list>
-      <a mat-list-item *ngFor="let n of nav" [routerLink]="n.path" routerLinkActive="active">
+      <a mat-list-item *ngFor="let n of nav" [routerLink]="navPath(n)" routerLinkActive="active">
         <mat-icon matListItemIcon aria-hidden="true">{{ n.icon }}</mat-icon>
         <span matListItemTitle>{{ n.label }}</span>
       </a>
