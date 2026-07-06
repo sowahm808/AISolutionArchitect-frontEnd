@@ -18,11 +18,11 @@ export class LoginComponent {
   auth = inject(AuthService);
   router = inject(Router);
   form = this.fb.nonNullable.group({
-    email: ["architect@contoso.com", [Validators.required, Validators.email]],
-    password: ["password", [Validators.required]],
+    email: ["", [Validators.required, Validators.email]],
+    password: ["", [Validators.required]],
   });
   submit() {
-    this.auth.login(this.form.value.email!).subscribe(() => this.router.navigateByUrl("/dashboard"));
+    this.auth.login(this.form.value.email!, this.form.value.password!).subscribe(() => this.router.navigateByUrl("/dashboard"));
   }
 }
 
@@ -44,6 +44,6 @@ export class RegisterComponent {
     password: ["", Validators.required],
   });
   submit() {
-    this.auth.register(this.form.value.email!).subscribe(() => this.router.navigateByUrl("/dashboard"));
+    this.auth.register(this.form.value.name!, this.form.value.email!, this.form.value.password!).subscribe(() => this.router.navigateByUrl("/dashboard"));
   }
 }
