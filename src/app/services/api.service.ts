@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable, tap } from "rxjs";
+import { Observable, map, tap } from "rxjs";
 import { environment } from "../../environments/environment";
 import { AppStore } from "../core/app.store";
 import {
@@ -14,12 +14,56 @@ import {
   Organization,
   Project,
   SecurityFinding,
+  Role,
   User,
 } from "../models/domain";
+
+type ApiRole = Uppercase<Role> | Role;
+
+interface ApiUser extends Omit<User, "role"> {
+  role: ApiRole;
+}
+
+interface ApiAuthResponse {
+  token: string;
+  user: ApiUser;
+}
 
 interface AuthResponse {
   token: string;
   user: User;
+}
+
+const API_ROLE_BY_APP_ROLE: Record<Role, Uppercase<Role>> = {
+  Admin: "ADMIN",
+  Architect: "ARCHITECT",
+  Security: "SECURITY",
+  Viewer: "VIEWER",
+};
+
+const APP_ROLE_BY_API_ROLE: Record<string, Role> = {
+  ADMIN: "Admin",
+  ARCHITECT: "Architect",
+  SECURITY: "Security",
+  VIEWER: "Viewer",
+};
+
+function toApiRole(role: Role): Uppercase<Role> {
+  return API_ROLE_BY_APP_ROLE[role];
+}
+
+function toAppRole(role: ApiRole): Role {
+  return APP_ROLE_BY_API_ROLE[String(role).toUpperCase()] ?? "Viewer";
+}
+
+function toAuthResponse(response: ApiAuthResponse): AuthResponse {
+  return {
+    ...response,
+    user: {
+      ...response.user,
+      role: toAppRole(response.user.role),
+    },
+  };
 }
 
 @Injectable({ providedIn: "root" })
@@ -30,14 +74,14 @@ export class AuthService {
 
   login(email: string, password: string): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${this.api}/auth/login`, { email, password })
-      .pipe(tap((response) => this.applyAuthResponse(response)));
+      .post<ApiAuthResponse>(`${this.api}/auth/login`, { email, password })
+      .pipe(map(toAuthResponse), tap((response) => this.applyAuthResponse(response)));
   }
 
-  register(name: string, email: string, password: string, role = "Architect"): Observable<AuthResponse> {
+  register(name: string, email: string, password: string, role: Role = "Architect"): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${this.api}/auth/register`, { name, email, password, role })
-      .pipe(tap((response) => this.applyAuthResponse(response)));
+      .post<ApiAuthResponse>(`${this.api}/auth/register`, { name, email, password, role: toApiRole(role) })
+      .pipe(map(toAuthResponse), tap((response) => this.applyAuthResponse(response)));
   }
 
   logout() {
