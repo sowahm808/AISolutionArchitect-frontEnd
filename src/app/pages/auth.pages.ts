@@ -3,6 +3,7 @@ import { CommonModule } from "@angular/common";
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../services/api.service";
+import { Role } from "../models/domain";
 import { MATERIAL_IMPORTS } from "../material.imports";
 
 @Component({
@@ -40,11 +41,11 @@ export class RegisterComponent {
   router = inject(Router);
   form = this.fb.nonNullable.group({
     name: ["", Validators.required],
-    email: ["", Validators.email],
+    email: ["", [Validators.required, Validators.email]],
     password: ["", Validators.required],
     role: ["Architect", Validators.required],
   });
   submit() {
-    this.auth.register(this.form.value.name!, this.form.value.email!, this.form.value.password!, this.form.value.role!).subscribe(() => this.router.navigateByUrl("/dashboard"));
+    this.auth.register(this.form.value.name!, this.form.value.email!, this.form.value.password!, this.form.value.role! as Role).subscribe(() => this.router.navigateByUrl("/dashboard"));
   }
 }
