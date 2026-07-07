@@ -1,0 +1,4 @@
+.badge { background: var(--mat-sys-secondary-container); border-radius: 999px; color: #003737; display: inline-flex; font-size: 12px; font-weight: 700; letter-spacing: .08em; padding: 6px 12px; text-transform: uppercase; }
+.critical, .high { background: var(--mat-sys-error-container); color: #410002; }
+.medium { background: #ffdf9b; color: #3f2e00; }
+.low { background: #b8f5c1; color: #00390b; }
