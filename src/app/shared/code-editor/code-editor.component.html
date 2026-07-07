@@ -1,1 +1,16 @@
-<mat-form-field appearance="outline" class="code-field"><mat-label>{{ language }} editor</mat-label><textarea matInput class="code" [(ngModel)]="content" aria-describedby="code-editor-help"></textarea><mat-hint id="code-editor-help">Review or adjust the generated artifact content before saving, copying, or downloading it.</mat-hint></mat-form-field>
+<mat-form-field appearance="outline" class="code-field">
+  <mat-label>{{ language }} editor</mat-label>
+  <textarea matInput class="code" [(ngModel)]="content"></textarea>
+  <button
+    mat-icon-button
+    matSuffix
+    type="button"
+    class="field-help"
+    aria-label="Help for code editor"
+    matTooltip="Review or adjust the generated artifact content before saving, copying, or downloading it."
+    matTooltipPosition="above"
+    matTooltipClass="context-help-tooltip"
+  >
+    <mat-icon aria-hidden="true">info_outline</mat-icon>
+  </button>
+</mat-form-field>

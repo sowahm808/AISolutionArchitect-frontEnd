@@ -12,3 +12,19 @@ html, body { min-height: 100%; margin: 0; }
 body { background: radial-gradient(circle at top left, rgba(11, 87, 208, 0.12), transparent 34rem), var(--mat-sys-surface-container-low); color: var(--mat-sys-on-surface); font: 400 14px/1.55 Roboto, "Helvetica Neue", Arial, sans-serif; }
 a { color: inherit; text-decoration: none; }
 mat-card { border-radius: 24px !important; }
+
+.context-help-tooltip {
+  --mdc-plain-tooltip-container-color: #ffffff;
+  --mdc-plain-tooltip-supporting-text-color: #4d5a73;
+  --mdc-plain-tooltip-supporting-text-size: 24px;
+  --mdc-plain-tooltip-supporting-text-line-height: 1.35;
+  --mdc-plain-tooltip-supporting-text-weight: 400;
+  max-width: 450px !important;
+  white-space: normal;
+}
+.context-help-tooltip .mdc-tooltip__surface {
+  border: 1px solid rgba(77, 90, 115, 0.08);
+  border-radius: 28px !important;
+  box-shadow: 0 12px 28px rgba(30, 41, 59, 0.12);
+  padding: 28px 32px !important;
+}

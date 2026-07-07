@@ -1,1 +1,11 @@
-.grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }.form-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }mat-card { margin: 16px 0; }.two-col, .workspace { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) 320px; }.workspace { grid-template-columns: 280px minmax(0, 1fr); }.score { color: #0f7b36; font-size: 44px; font-weight: 500; margin: 16px 0; }.slide { min-height: 160px; }mat-form-field { width: 100%; }@media (max-width: 900px) { .two-col, .workspace { grid-template-columns: 1fr; } }
+.grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.form-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+mat-card { margin: 16px 0; }
+.two-col, .workspace { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) 320px; }
+.workspace { grid-template-columns: 280px minmax(0, 1fr); }
+.score { color: #0f7b36; font-size: 44px; font-weight: 500; margin: 16px 0; }
+.slide { min-height: 160px; }
+mat-form-field { width: 100%; }
+.field-help { color: #4d5a73; margin-right: 4px; }
+.field-help mat-icon { font-size: 22px; height: 22px; width: 22px; }
+@media (max-width: 900px) { .two-col, .workspace { grid-template-columns: 1fr; } }
