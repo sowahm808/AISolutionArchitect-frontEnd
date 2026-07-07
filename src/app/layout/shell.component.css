@@ -1,15 +1,24 @@
 .shell { min-height: 100vh; }
 .shell__nav { width: 304px; border-right: 1px solid var(--mat-sys-outline-variant); }
+.shell__content { min-height: 100vh; }
 .brand { gap: 12px; height: 72px; }
 .brand span { white-space: normal; line-height: 1.2; }
 .shell__nav-list { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
 .shell__nav-list a[mat-list-item] { border-radius: 14px; }
 .topbar { position: sticky; top: 0; z-index: 2; gap: 12px; border-bottom: 1px solid var(--mat-sys-outline-variant); background: color-mix(in srgb, var(--mat-sys-surface) 92%, transparent); backdrop-filter: blur(12px); }
+.nav-toggle { display: none; }
 .spacer { flex: 1 1 auto; }
+.help-button { color: var(--mat-sys-primary); }
 .profile-link { min-height: 48px; }
 .profile-link mat-icon { margin-right: 8px; }
 .profile-link__text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
 .profile-link__text small { font-size: 0.75rem; opacity: 0.72; }
 .content { padding: 32px; }
 a.active { background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); }
-@media (max-width: 900px) { .shell__nav { width: 250px; } .content { padding: 20px; } .profile-link__text { display: none; } }
+:host ::ng-deep .context-help-tooltip { max-width: 320px; font-size: 0.85rem; line-height: 1.35; }
+@media (max-width: 900px) {
+  .shell__nav { width: min(280px, 85vw); }
+  .nav-toggle { display: inline-flex; }
+  .content { padding: 20px; }
+  .profile-link__text { display: none; }
+}
