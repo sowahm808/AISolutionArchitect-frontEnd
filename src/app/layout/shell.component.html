@@ -1,11 +1,11 @@
 <mat-sidenav-container class="shell">
-  <mat-sidenav mode="side" opened class="shell__nav">
+  <mat-sidenav #drawer mode="side" opened class="shell__nav" fixedInViewport="true">
     <mat-toolbar color="primary" class="brand">
       <mat-icon aria-hidden="true">auto_awesome</mat-icon>
       <span>AI Solution Architect</span>
     </mat-toolbar>
 
-    <mat-nav-list class="shell__nav-list">
+    <mat-nav-list class="shell__nav-list" aria-label="Primary navigation">
       <a mat-list-item *ngFor="let n of visibleNav()" [routerLink]="navPath(n)" routerLinkActive="active">
         <mat-icon matListItemIcon aria-hidden="true">{{ n.icon }}</mat-icon>
         <span matListItemTitle>{{ n.label }}</span>
@@ -13,10 +13,24 @@
     </mat-nav-list>
   </mat-sidenav>
 
-  <mat-sidenav-content>
+  <mat-sidenav-content class="shell__content">
     <mat-toolbar class="topbar">
+      <button mat-icon-button type="button" class="nav-toggle" aria-label="Toggle navigation" (click)="drawer.toggle()">
+        <mat-icon aria-hidden="true">menu</mat-icon>
+      </button>
       <span>Enterprise architecture workspace</span>
       <span class="spacer"></span>
+      <button
+        mat-icon-button
+        type="button"
+        class="help-button"
+        aria-label="Contextual help"
+        [matTooltip]="helpText"
+        matTooltipPosition="below"
+        matTooltipClass="context-help-tooltip"
+      >
+        <mat-icon aria-hidden="true">help_outline</mat-icon>
+      </button>
       <a mat-button routerLink="/profile" class="profile-link" aria-label="Open profile">
         <mat-icon aria-hidden="true">account_circle</mat-icon>
         <span class="profile-link__text">

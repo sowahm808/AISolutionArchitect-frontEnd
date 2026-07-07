@@ -44,6 +44,9 @@ const SHELL_NAVIGATION: readonly ShellNavigationItem[] = [
   styleUrl: "./shell.component.css",
 })
 export class AppShellComponent {
+  protected readonly helpText =
+    "Use the side navigation to switch workspaces, then open project sections such as Discovery, Artifacts, Security, Risks, and Cost.";
+
   protected readonly store = inject(AppStore);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
