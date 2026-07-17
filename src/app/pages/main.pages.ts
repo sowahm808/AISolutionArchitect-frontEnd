@@ -73,7 +73,32 @@ export class CreateProjectComponent extends MaterialPageBase { override page = "
 @Component({ selector: "app-project-overview", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
 export class ProjectOverviewComponent extends MaterialPageBase implements OnInit { override page = "overview"; ngOnInit() { this.loadProject(); } }
 @Component({ selector: "app-discovery", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
-export class DiscoveryComponent extends MaterialPageBase implements OnInit { override page = "discovery"; private readonly discovery = inject(DiscoveryService); ngOnInit() { this.discovery.questions(this.projectId()).pipe(catchError((e) => this.handleError(e))).subscribe((questions) => this.questions.set(questions ?? [])); } }
+export class DiscoveryComponent extends MaterialPageBase implements OnInit {
+  override page = "discovery";
+  private readonly discovery = inject(DiscoveryService);
+  private readonly architecture = inject(ArchitectureModelService);
+  private readonly router = inject(Router);
+
+  ngOnInit() {
+    this.discovery.questions(this.projectId()).pipe(catchError((e) => this.handleError(e))).subscribe((questions) => this.questions.set(questions ?? []));
+  }
+
+  generateArchitecture() {
+    const projectId = this.projectId();
+    if (!projectId || this.loading()) return;
+
+    this.error.set(null);
+    this.loading.set(true);
+    this.architecture.generate(projectId).pipe(
+      catchError((e) => this.handleError(e)),
+      finalize(() => this.loading.set(false)),
+    ).subscribe((job) => {
+      if (!job) return;
+      this.job.set(job);
+      this.router.navigate(["/projects", projectId, "architecture-model"]);
+    });
+  }
+}
 @Component({ selector: "app-model", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
 export class ArchitectureModelComponent extends MaterialPageBase implements OnInit { override page = "model"; private readonly architecture = inject(ArchitectureModelService); ngOnInit() { this.architecture.get(this.projectId()).pipe(catchError((e) => this.handleError(e))).subscribe((model) => { if (!model) return; this.model.set(model); this.sections.set(Object.entries(model).filter(([k]) => k !== "risks").map(([k, v]) => [k, Array.isArray(v) ? v.join(", ") : String(v)])); }); } }
 @Component({ selector: "app-artifacts", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
