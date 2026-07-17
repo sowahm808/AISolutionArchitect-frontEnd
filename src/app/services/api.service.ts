@@ -57,19 +57,32 @@ function toAppRole(role: ApiRole): Role {
 }
 
 
-type ProjectListResponse = Project[] | { projects?: Project[]; data?: Project[]; items?: Project[] };
+type ApiProject = Partial<Project> & { _id?: string; organization?: string; client?: string };
+type ProjectListResponse = ApiProject[] | { projects?: ApiProject[]; data?: ApiProject[]; items?: ApiProject[]; results?: ApiProject[] };
+type ProjectResponse = ApiProject | { project?: ApiProject; data?: ApiProject; item?: ApiProject };
 
-function unwrapProjects(response: ProjectListResponse): Project[] {
+function unwrapProjects(response: ProjectListResponse): ApiProject[] {
   if (Array.isArray(response)) return response;
-  return response.projects ?? response.data ?? response.items ?? [];
+  return response.projects ?? response.data ?? response.items ?? response.results ?? [];
 }
 
-function toProject(project: Project): Project {
+function unwrapProject(response: ProjectResponse): ApiProject {
+  if ("project" in response || "data" in response || "item" in response) {
+    return response.project ?? response.data ?? response.item ?? {};
+  }
+  return response as ApiProject;
+}
+
+function toProject(project: ApiProject): Project {
+  const id = project.id ?? project._id ?? "";
   return {
     ...project,
-    company: project.company || "Not specified",
+    id,
+    name: project.name || "Untitled project",
+    company: project.company || project.client || project.organization || "Not specified",
     industry: project.industry || "Not specified",
     migrationType: project.migrationType || "Not specified",
+    status: project.status || "DRAFT",
     cloudProvider: project.cloudProvider ?? null,
     completion: project.completion ?? 0,
     lastUpdated: project.lastUpdated ?? project.updatedAt ?? project.createdAt ?? "",
@@ -129,11 +142,11 @@ export class ProjectService {
   }
 
   get(id: string) {
-    return this.http.get<Project>(`${this.api}/projects/${id}`).pipe(map(toProject));
+    return this.http.get<ProjectResponse>(`${this.api}/projects/${id}`).pipe(map(unwrapProject), map(toProject));
   }
 
   create(project: Partial<Project>) {
-    return this.http.post<Project>(`${this.api}/projects`, project).pipe(map(toProject));
+    return this.http.post<ProjectResponse>(`${this.api}/projects`, project).pipe(map(unwrapProject), map(toProject));
   }
 }
 

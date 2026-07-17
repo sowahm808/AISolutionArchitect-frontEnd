@@ -1,10 +1,11 @@
-import { Component, inject } from "@angular/core";
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from "@angular/router";
+import { Component, OnInit, inject } from "@angular/core";
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from "@angular/router";
 import { CommonModule } from "@angular/common";
 import { AppStore } from "../core/app.store";
-import { AuthService } from "../services/api.service";
+import { AuthService, ProjectService } from "../services/api.service";
 import { Role } from "../models/domain";
 import { MATERIAL_IMPORTS } from "../material.imports";
+import { catchError, filter, of } from "rxjs";
 
 interface ShellNavigationItem {
   readonly label: string;
@@ -43,17 +44,35 @@ const SHELL_NAVIGATION: readonly ShellNavigationItem[] = [
   templateUrl: "./shell.component.html",
   styleUrl: "./shell.component.css",
 })
-export class AppShellComponent {
+export class AppShellComponent implements OnInit {
   protected readonly helpText =
     "Use the side navigation to switch workspaces, then open project sections such as Discovery, Artifacts, Security, Risks, and Cost.";
 
   protected readonly store = inject(AppStore);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
+  private readonly projectService = inject(ProjectService);
   protected readonly nav = SHELL_NAVIGATION;
+
+  ngOnInit() {
+    this.syncProjectContext();
+    this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd)).subscribe(() => this.syncProjectContext());
+  }
 
   protected visibleNav() {
     return this.nav.filter((item) => !item.roles || this.store.hasAnyRole(item.roles));
+  }
+
+  protected primaryNav() {
+    return this.visibleNav().filter((item) => !item.requiresProject);
+  }
+
+  protected projectNav() {
+    return this.visibleNav().filter((item) => item.requiresProject);
+  }
+
+  protected projectNavDisabled() {
+    return !this.activeProjectId();
   }
 
   protected navPath(item: ShellNavigationItem) {
@@ -68,6 +87,24 @@ export class AppShellComponent {
   }
 
   private activeProjectId() {
-    return this.store.currentProject()?.id ?? this.router.url.match(/\/projects\/([^/]+)/)?.[1] ?? "";
+    return this.store.currentProject()?.id ?? this.urlProjectId() ?? "";
+  }
+
+  private urlProjectId() {
+    const match = this.router.url.match(/\/projects\/([^/?#]+)/);
+    if (!match || match[1] === "new") return "";
+    return decodeURIComponent(match[1]);
+  }
+
+  private syncProjectContext() {
+    const projectId = this.urlProjectId();
+    if (!projectId) {
+      this.store.currentProject.set(null);
+      return;
+    }
+
+    if (this.store.currentProject()?.id === projectId) return;
+
+    this.projectService.get(projectId).pipe(catchError(() => of(null))).subscribe((project) => this.store.currentProject.set(project));
   }
 }

@@ -6,7 +6,27 @@
     </mat-toolbar>
 
     <mat-nav-list class="shell__nav-list" aria-label="Primary navigation">
-      <a mat-list-item *ngFor="let n of visibleNav()" [routerLink]="navPath(n)" routerLinkActive="active">
+      <a mat-list-item *ngFor="let n of primaryNav()" [routerLink]="navPath(n)" routerLinkActive="active">
+        <mat-icon matListItemIcon aria-hidden="true">{{ n.icon }}</mat-icon>
+        <span matListItemTitle>{{ n.label }}</span>
+      </a>
+    </mat-nav-list>
+
+    <section class="project-context" [class.project-context--empty]="!store.currentProject()">
+      <span class="project-context__eyebrow">Active project</span>
+      <strong>{{ store.currentProject()?.name || "Select a project" }}</strong>
+      <small>{{ store.currentProject()?.company || "Project workspaces unlock after selection" }}</small>
+    </section>
+
+    <mat-nav-list class="shell__nav-list shell__nav-list--project" aria-label="Project workspace navigation">
+      <a
+        mat-list-item
+        *ngFor="let n of projectNav()"
+        [routerLink]="navPath(n)"
+        routerLinkActive="active"
+        [class.disabled]="projectNavDisabled()"
+        [attr.aria-disabled]="projectNavDisabled()"
+      >
         <mat-icon matListItemIcon aria-hidden="true">{{ n.icon }}</mat-icon>
         <span matListItemTitle>{{ n.label }}</span>
       </a>

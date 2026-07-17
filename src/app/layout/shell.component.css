@@ -22,3 +22,8 @@ a.active { background: var(--mat-sys-primary-container); color: var(--mat-sys-on
   .content { padding: 20px; }
   .profile-link__text { display: none; }
 }
+.project-context { margin: 8px 12px; padding: 14px 16px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 16px; background: var(--mat-sys-surface-container-high); display: flex; flex-direction: column; gap: 4px; }
+.project-context__eyebrow { color: var(--mat-sys-primary); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.project-context small { color: var(--mat-sys-on-surface-variant); }
+.project-context--empty { opacity: .82; }
+.shell__nav-list--project a.disabled { opacity: .48; }
