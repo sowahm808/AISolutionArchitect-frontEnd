@@ -1,1 +1,16 @@
-<mat-card class="project-card"><mat-card-header><mat-card-title>{{ project.name }}</mat-card-title><mat-card-subtitle>{{ project.company }} · {{ project.cloudProvider }} · {{ project.migrationType }}</mat-card-subtitle><app-status-badge [value]="project.status" /></mat-card-header><mat-card-content><mat-progress-bar mode="determinate" [value]="project.completion" /><dl><div><dt>Artifacts</dt><dd>{{ project.generatedArtifacts }}</dd></div><div><dt>Risks</dt><dd>{{ project.openRisks }}</dd></div><div><dt>Security</dt><dd>{{ project.securityScore }}%</dd></div><div><dt>Monthly</dt><dd>{{ project.estimatedMonthlyCost | currency }}</dd></div></dl></mat-card-content></mat-card>
+<mat-card class="project-card">
+  <mat-card-header>
+    <mat-card-title>{{ project.name }}</mat-card-title>
+    <mat-card-subtitle>{{ subtitle }}</mat-card-subtitle>
+    <app-status-badge [value]="project.status || 'DRAFT'" />
+  </mat-card-header>
+  <mat-card-content>
+    <mat-progress-bar mode="determinate" [value]="project.completion ?? 0" />
+    <dl>
+      <div><dt>Artifacts</dt><dd>{{ project.generatedArtifacts ?? 0 }}</dd></div>
+      <div><dt>Risks</dt><dd>{{ project.openRisks ?? 0 }}</dd></div>
+      <div><dt>Security</dt><dd>{{ project.securityScore ?? 0 }}%</dd></div>
+      <div><dt>Monthly</dt><dd>{{ project.estimatedMonthlyCost ?? 0 | currency }}</dd></div>
+    </dl>
+  </mat-card-content>
+</mat-card>
