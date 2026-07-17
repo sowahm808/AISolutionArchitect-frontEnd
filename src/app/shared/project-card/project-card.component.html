@@ -1,4 +1,4 @@
-<mat-card class="project-card">
+<mat-card class="project-card" [routerLink]="['/projects', project.id]" tabindex="0" role="link">
   <mat-card-header>
     <mat-card-title>{{ project.name }}</mat-card-title>
     <mat-card-subtitle>{{ subtitle }}</mat-card-subtitle>
