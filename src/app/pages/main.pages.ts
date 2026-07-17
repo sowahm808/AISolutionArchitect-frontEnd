@@ -38,6 +38,23 @@ class MaterialPageBase {
   questions = signal<DiscoveryQuestion[]>([]);
   model = signal<ArchitectureModel | null>(null);
   sections = signal<[string, string][]>([]);
+  protected formatModelValue(value: unknown): string {
+    if (value === null || value === undefined || value === "") return "Not provided";
+    if (Array.isArray(value)) {
+      if (!value.length) return "None provided";
+      return value.map((item) => this.formatModelValue(item)).join("; ");
+    }
+    if (typeof value === "object") {
+      const entries = Object.entries(value as Record<string, unknown>).filter(([, entryValue]) => entryValue !== null && entryValue !== undefined && entryValue !== "");
+      if (!entries.length) return "Not provided";
+      return entries.map(([key, entryValue]) => `${this.formatModelLabel(key)}: ${this.formatModelValue(entryValue)}`).join("; ");
+    }
+    return String(value);
+  }
+
+  protected formatModelLabel(key: string): string {
+    return key.replace(/([A-Z])/g, " $1").replace(/^./, (char) => char.toUpperCase());
+  }
   artifacts = signal<Artifact[]>([]);
   selected = signal<Artifact | null>(null);
   findings = signal<SecurityFinding[]>([]);
@@ -100,7 +117,20 @@ export class DiscoveryComponent extends MaterialPageBase implements OnInit {
   }
 }
 @Component({ selector: "app-model", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
-export class ArchitectureModelComponent extends MaterialPageBase implements OnInit { override page = "model"; private readonly architecture = inject(ArchitectureModelService); ngOnInit() { this.architecture.get(this.projectId()).pipe(catchError((e) => this.handleError(e))).subscribe((model) => { if (!model) return; this.model.set(model); this.sections.set(Object.entries(model).filter(([k]) => k !== "risks").map(([k, v]) => [k, Array.isArray(v) ? v.join(", ") : String(v)])); }); } }
+export class ArchitectureModelComponent extends MaterialPageBase implements OnInit {
+  override page = "model";
+  private readonly architecture = inject(ArchitectureModelService);
+
+  ngOnInit() {
+    this.architecture.get(this.projectId()).pipe(catchError((e) => this.handleError(e))).subscribe((model) => {
+      if (!model) return;
+      this.model.set(model);
+      this.sections.set(Object.entries(model)
+        .filter(([key]) => !["risks", "id", "projectId", "createdAt"].includes(key))
+        .map(([key, value]) => [this.formatModelLabel(key), this.formatModelValue(value)]));
+    });
+  }
+}
 @Component({ selector: "app-artifacts", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
 export class ArtifactsComponent extends MaterialPageBase implements OnInit { override page = "artifacts"; private readonly artifactService = inject(ArtifactService); ngOnInit() { this.artifactService.list(this.projectId()).pipe(catchError((e) => this.handleError(e))).subscribe((artifacts) => { this.artifacts.set(artifacts ?? []); this.selected.set(artifacts?.[0] ?? null); }); } }
 @Component({ selector: "app-security", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
