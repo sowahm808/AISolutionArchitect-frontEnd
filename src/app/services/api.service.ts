@@ -56,6 +56,30 @@ function toAppRole(role: ApiRole): Role {
   return APP_ROLE_BY_API_ROLE[String(role).toUpperCase()] ?? "Viewer";
 }
 
+
+type ProjectListResponse = Project[] | { projects?: Project[]; data?: Project[]; items?: Project[] };
+
+function unwrapProjects(response: ProjectListResponse): Project[] {
+  if (Array.isArray(response)) return response;
+  return response.projects ?? response.data ?? response.items ?? [];
+}
+
+function toProject(project: Project): Project {
+  return {
+    ...project,
+    company: project.company || "Not specified",
+    industry: project.industry || "Not specified",
+    migrationType: project.migrationType || "Not specified",
+    cloudProvider: project.cloudProvider ?? null,
+    completion: project.completion ?? 0,
+    lastUpdated: project.lastUpdated ?? project.updatedAt ?? project.createdAt ?? "",
+    generatedArtifacts: project.generatedArtifacts ?? 0,
+    openRisks: project.openRisks ?? 0,
+    securityScore: project.securityScore ?? 0,
+    estimatedMonthlyCost: project.estimatedMonthlyCost ?? 0,
+  };
+}
+
 function toAuthResponse(response: ApiAuthResponse): AuthResponse {
   return {
     ...response,
@@ -101,15 +125,15 @@ export class ProjectService {
   private readonly api = environment.apiUrl;
 
   list() {
-    return this.http.get<Project[]>(`${this.api}/projects`);
+    return this.http.get<ProjectListResponse>(`${this.api}/projects`).pipe(map(unwrapProjects), map((projects) => projects.map(toProject)));
   }
 
   get(id: string) {
-    return this.http.get<Project>(`${this.api}/projects/${id}`);
+    return this.http.get<Project>(`${this.api}/projects/${id}`).pipe(map(toProject));
   }
 
   create(project: Partial<Project>) {
-    return this.http.post<Project>(`${this.api}/projects`, project);
+    return this.http.post<Project>(`${this.api}/projects`, project).pipe(map(toProject));
   }
 }
 
