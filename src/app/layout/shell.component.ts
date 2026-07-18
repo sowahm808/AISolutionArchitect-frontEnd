@@ -75,6 +75,17 @@ export class AppShellComponent implements OnInit {
     return !this.activeProjectId();
   }
 
+  protected trackNavItem(_index: number, item: ShellNavigationItem) {
+    return `${item.label}:${item.path}`;
+  }
+
+  protected keepDisabledProjectNavInPlace(event: MouseEvent) {
+    if (!this.projectNavDisabled()) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
   protected navPath(item: ShellNavigationItem) {
     if (!item.requiresProject) return item.path;
     const projectId = this.activeProjectId();
