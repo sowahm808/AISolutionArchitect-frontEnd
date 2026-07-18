@@ -50,6 +50,8 @@ export interface DiscoveryAnswer {
   skipped?: boolean;
 }
 export interface ArchitectureModel {
+  id?: string;
+  projectId?: string;
   businessContext: string;
   currentState: string;
   targetState: string;
@@ -71,10 +73,20 @@ export interface Artifact {
   type: string;
   name: string;
   status: string;
-  language: "markdown" | "yaml" | "json" | "terraform" | "mermaid";
+  language: "markdown" | "yaml" | "json" | "terraform" | "mermaid" | "text";
   version: string;
   content: string;
   updatedAt: string;
+  title?: string;
+  summary?: string;
+  sections?: unknown;
+  slides?: unknown;
+  markdown?: string;
+  text?: string;
+}
+export interface ArtifactWorkspace {
+  architectureModel: ArchitectureModel | string | null;
+  artifacts: Artifact[];
 }
 export interface ADR {
   id: string;

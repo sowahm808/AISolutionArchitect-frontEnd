@@ -6,6 +6,7 @@ import { AppStore } from "../core/app.store";
 import {
   ArchitectureModel,
   Artifact,
+  ArtifactWorkspace,
   AuditLog,
   CostEstimate,
   DiscoveryAnswer,
@@ -56,6 +57,66 @@ function toAppRole(role: ApiRole): Role {
   return APP_ROLE_BY_API_ROLE[String(role).toUpperCase()] ?? "Viewer";
 }
 
+
+
+type ApiArtifact = Partial<Artifact> & { _id?: string; title?: string; body?: unknown; data?: unknown; artifact?: unknown };
+type ArtifactListResponse = ApiArtifact[] | { artifacts?: ApiArtifact[]; data?: ApiArtifact[]; items?: ApiArtifact[]; results?: ApiArtifact[] };
+type ArtifactWorkspaceResponse = Partial<ArtifactWorkspace> & { model?: ArchitectureModel | string | null; architectureModelId?: string; artifacts?: ApiArtifact[]; data?: ApiArtifact[]; items?: ApiArtifact[]; results?: ApiArtifact[] };
+
+function artifactTitle(type: string): string {
+  return type
+    .split(/[_.-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ") || "Artifact";
+}
+
+function stringifyArtifactContent(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) return value.map(stringifyArtifactContent).filter(Boolean).join("\n\n");
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    for (const key of ["markdown", "text", "summary", "content", "body"]) {
+      if (typeof record[key] === "string" && record[key]) return record[key];
+    }
+    if (Array.isArray(record["slides"])) return stringifyArtifactContent(record["slides"]);
+    if (Array.isArray(record["sections"])) return stringifyArtifactContent(record["sections"]);
+    return JSON.stringify(value, null, 2);
+  }
+  return String(value);
+}
+
+function toArtifact(artifact: ApiArtifact, projectId = ""): Artifact {
+  const type = artifact.type || "artifact";
+  const content = artifact.content || stringifyArtifactContent(artifact.markdown ?? artifact.text ?? artifact.summary ?? artifact.sections ?? artifact.slides ?? artifact.body ?? artifact.data ?? artifact.artifact);
+  const language = artifact.language || (content.trim().startsWith("{") || content.trim().startsWith("[") ? "json" : "markdown");
+  return {
+    ...artifact,
+    id: artifact.id ?? artifact._id ?? `${type}-workspace`,
+    projectId: artifact.projectId ?? projectId,
+    type,
+    name: artifact.name ?? artifact.title ?? artifactTitle(type),
+    status: artifact.status ?? "draft",
+    language,
+    version: artifact.version ?? "draft",
+    content,
+    updatedAt: artifact.updatedAt ?? "",
+  };
+}
+
+function unwrapArtifacts(response: ArtifactListResponse): ApiArtifact[] {
+  if (Array.isArray(response)) return response;
+  return response.artifacts ?? response.data ?? response.items ?? response.results ?? [];
+}
+
+function toArtifactWorkspace(response: ArtifactWorkspaceResponse, projectId: string): ArtifactWorkspace {
+  const artifacts = unwrapArtifacts(response as ArtifactListResponse).map((artifact) => toArtifact(artifact, projectId));
+  return {
+    architectureModel: response.architectureModel ?? response.model ?? response.architectureModelId ?? null,
+    artifacts,
+  };
+}
 
 type ApiProject = Partial<Project> & { _id?: string; organization?: string; client?: string };
 type ProjectListResponse = ApiProject[] | { projects?: ApiProject[]; data?: ApiProject[]; items?: ApiProject[]; results?: ApiProject[] };
@@ -185,7 +246,11 @@ export class ArtifactService {
 
   list(projectId: string, type?: string) {
     const params = type ? { type } : undefined;
-    return this.http.get<Artifact[]>(`${this.api}/projects/${projectId}/artifacts`, { params });
+    return this.http.get<ArtifactListResponse>(`${this.api}/projects/${projectId}/artifacts`, { params }).pipe(map((response) => unwrapArtifacts(response).map((artifact) => toArtifact(artifact, projectId))));
+  }
+
+  workspace(projectId: string) {
+    return this.http.get<ArtifactWorkspaceResponse>(`${this.api}/projects/${projectId}/artifacts/workspace`).pipe(map((response) => toArtifactWorkspace(response, projectId)));
   }
 
   save(projectId: string, artifact: Artifact) {

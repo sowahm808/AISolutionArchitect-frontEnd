@@ -132,7 +132,22 @@ export class ArchitectureModelComponent extends MaterialPageBase implements OnIn
   }
 }
 @Component({ selector: "app-artifacts", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
-export class ArtifactsComponent extends MaterialPageBase implements OnInit { override page = "artifacts"; private readonly artifactService = inject(ArtifactService); ngOnInit() { this.artifactService.list(this.projectId()).pipe(catchError((e) => this.handleError(e))).subscribe((artifacts) => { this.artifacts.set(artifacts ?? []); this.selected.set(artifacts?.[0] ?? null); }); } }
+export class ArtifactsComponent extends MaterialPageBase implements OnInit {
+  override page = "artifacts";
+  private readonly artifactService = inject(ArtifactService);
+
+  ngOnInit() {
+    this.loading.set(true);
+    this.artifactService.workspace(this.projectId()).pipe(
+      catchError((e) => this.handleError(e)),
+      finalize(() => this.loading.set(false)),
+    ).subscribe((workspace) => {
+      const artifacts = workspace?.artifacts ?? [];
+      this.artifacts.set(artifacts);
+      this.selected.set(artifacts[0] ?? null);
+    });
+  }
+}
 @Component({ selector: "app-security", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
 export class SecurityComponent extends MaterialPageBase implements OnInit { override page = "security"; private readonly review = inject(ReviewService); ngOnInit() { this.review.securityFindings(this.projectId()).pipe(catchError((e) => this.handleError(e))).subscribe((findings) => this.findings.set(findings ?? [])); } }
 @Component({ selector: "app-risks", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
