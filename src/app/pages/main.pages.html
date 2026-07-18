@@ -13,7 +13,43 @@
 
 <ng-container *ngIf="page === 'model'"><section class="grid"><mat-card *ngFor="let s of sections()"><mat-card-title>{{ s[0] }}</mat-card-title><mat-card-content>{{ s[1] }}</mat-card-content></mat-card></section><app-risk-table [risks]="model()?.risks ?? []" /></ng-container>
 
-<section *ngIf="page === 'artifacts'" class="workspace"><mat-card><mat-card-title>Artifact types</mat-card-title><mat-card-content *ngIf="loading()">Loading workspace artifacts…</mat-card-content><mat-card-content *ngIf="!loading() && !artifacts().length">No artifact workspace rows were returned. Generate an architecture model first.</mat-card-content><mat-nav-list *ngIf="artifacts().length"><button mat-list-item *ngFor="let a of artifacts()" (click)="selected.set(a)"><span matListItemTitle>{{ a.name }}</span><span matListItemLine>{{ a.status }} • {{ a.version }}</span></button></mat-nav-list></mat-card><mat-card><mat-card-header><mat-card-title>{{ selected()?.name || 'Artifact preview' }}</mat-card-title><mat-card-subtitle *ngIf="selected() as active">{{ active.type }} • {{ active.status }}</mat-card-subtitle></mat-card-header><mat-card-actions><button mat-button>Regenerate</button><button mat-button>Save edits</button><button mat-button>Copy</button><button mat-button>Download</button></mat-card-actions><mat-card-content><p *ngIf="selected() && !selected()?.content">This artifact slot is ready and will show content after generation.</p><app-markdown-viewer *ngIf="selected()?.language === 'markdown' || selected()?.language === 'text'" [content]="selected()?.content ?? ''" /><app-mermaid-viewer *ngIf="selected()?.language === 'mermaid'" [source]="selected()?.content ?? ''" /><app-code-editor *ngIf="selected()?.language !== 'markdown' && selected()?.language !== 'text' && selected()?.language !== 'mermaid'" [content]="selected()?.content ?? ''" [language]="selected()?.language" /></mat-card-content></mat-card></section>
+<section *ngIf="page === 'artifacts'" class="workspace">
+  <mat-card class="artifact-list-card">
+    <mat-card-title>Artifact types</mat-card-title>
+    <mat-card-content *ngIf="loading()">Loading workspace artifacts…</mat-card-content>
+    <mat-card-content *ngIf="!loading() && !artifacts().length">No artifact workspace rows were returned. Generate an architecture model first.</mat-card-content>
+    <mat-nav-list *ngIf="artifacts().length">
+      <button mat-list-item *ngFor="let a of artifacts()" [class.artifact-list-card__item--active]="selected()?.id === a.id" (click)="selectArtifact(a)">
+        <span matListItemTitle>{{ a.name }}</span>
+        <span matListItemLine>{{ a.status }} • {{ a.version }} • {{ a.language }}</span>
+      </button>
+    </mat-nav-list>
+  </mat-card>
+  <mat-card class="artifact-editor-card">
+    <mat-card-header>
+      <mat-card-title>{{ selected()?.name || 'Artifact preview' }}</mat-card-title>
+      <mat-card-subtitle *ngIf="selected() as active">{{ active.type }} • {{ active.status }} • Version {{ active.version }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-actions>
+      <button mat-button type="button" [disabled]="loading()" (click)="regenerateWorkspace()">Regenerate</button>
+      <button mat-flat-button color="primary" type="button" [disabled]="!selected() || !hasArtifactEdits() || savingArtifact()" (click)="saveSelectedArtifact()">{{ savingArtifact() ? 'Saving…' : 'Save edits' }}</button>
+      <button mat-button type="button" [disabled]="!selected()" (click)="copySelectedArtifact()">Copy</button>
+      <button mat-button type="button" [disabled]="!selected()" (click)="downloadSelectedArtifact()">Download</button>
+    </mat-card-actions>
+    <mat-card-content>
+      <p *ngIf="workspaceMessage()" class="workspace-message">{{ workspaceMessage() }}</p>
+      <p *ngIf="selected() && !selectedContent()">This artifact slot is ready and will show content after generation.</p>
+      <mat-form-field *ngIf="selected() as active" appearance="outline" class="artifact-editor-card__field">
+        <mat-label>Edit {{ active.name }}</mat-label>
+        <textarea matInput [value]="selectedContent()" (input)="updateSelectedContent($any($event.target).value)" [attr.aria-label]="'Edit ' + active.name"></textarea>
+      </mat-form-field>
+      <h3 *ngIf="selectedContent()">Preview</h3>
+      <app-markdown-viewer *ngIf="selected()?.language === 'markdown' || selected()?.language === 'text'" [content]="selectedContent()" />
+      <app-mermaid-viewer *ngIf="selected()?.language === 'mermaid'" [source]="selectedContent()" />
+      <app-code-editor *ngIf="selected() && selected()?.language !== 'markdown' && selected()?.language !== 'text' && selected()?.language !== 'mermaid'" [content]="selectedContent()" [language]="selected()?.language" />
+    </mat-card-content>
+  </mat-card>
+</section>
 
 <ng-container *ngIf="page === 'security'"><app-security-finding-card *ngFor="let f of findings()" [finding]="f" /></ng-container>
 <app-risk-table *ngIf="page === 'risks'" [risks]="risks()" />
