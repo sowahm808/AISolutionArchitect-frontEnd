@@ -57,6 +57,10 @@ class MaterialPageBase {
   }
   artifacts = signal<Artifact[]>([]);
   selected = signal<Artifact | null>(null);
+  selectedContent = signal("");
+  workspaceMessage = signal<string | null>(null);
+  savingArtifact = signal(false);
+  hasArtifactEdits = computed(() => (this.selected()?.content ?? "") !== this.selectedContent());
   findings = signal<SecurityFinding[]>([]);
   risks = signal<Risk[]>([]);
   cost = signal<CostEstimate | null>(null);
@@ -137,15 +141,83 @@ export class ArtifactsComponent extends MaterialPageBase implements OnInit {
   private readonly artifactService = inject(ArtifactService);
 
   ngOnInit() {
+    this.loadWorkspace();
+  }
+
+  loadWorkspace(preferredArtifactId?: string) {
     this.loading.set(true);
+    this.error.set(null);
     this.artifactService.workspace(this.projectId()).pipe(
       catchError((e) => this.handleError(e)),
       finalize(() => this.loading.set(false)),
     ).subscribe((workspace) => {
       const artifacts = workspace?.artifacts ?? [];
       this.artifacts.set(artifacts);
-      this.selected.set(artifacts[0] ?? null);
+      this.selectArtifact(artifacts.find((artifact) => artifact.id === preferredArtifactId) ?? artifacts[0] ?? null);
     });
+  }
+
+  selectArtifact(artifact: Artifact | null) {
+    this.selected.set(artifact);
+    this.selectedContent.set(artifact?.content ?? "");
+    this.workspaceMessage.set(null);
+  }
+
+  updateSelectedContent(content: string) {
+    this.selectedContent.set(content);
+  }
+
+  saveSelectedArtifact() {
+    const artifact = this.selected();
+    const projectId = this.projectId();
+    if (!artifact || !projectId || this.savingArtifact()) return;
+
+    const updatedArtifact = { ...artifact, content: this.selectedContent() };
+    this.savingArtifact.set(true);
+    this.workspaceMessage.set(null);
+    this.error.set(null);
+    this.artifactService.save(projectId, updatedArtifact).pipe(
+      catchError((e) => this.handleError(e)),
+      finalize(() => this.savingArtifact.set(false)),
+    ).subscribe((savedArtifact) => {
+      if (!savedArtifact) return;
+      const normalizedArtifact = { ...updatedArtifact, ...savedArtifact, content: savedArtifact.content ?? updatedArtifact.content };
+      this.artifacts.set(this.artifacts().map((item) => item.id === artifact.id ? normalizedArtifact : item));
+      this.selectArtifact(normalizedArtifact);
+      this.workspaceMessage.set("Artifact edits saved.");
+    });
+  }
+
+  copySelectedArtifact() {
+    const artifact = this.selected();
+    if (!artifact) return;
+    navigator.clipboard.writeText(this.selectedContent());
+    this.workspaceMessage.set(`Copied ${artifact.name} to the clipboard.`);
+  }
+
+  downloadSelectedArtifact() {
+    const artifact = this.selected();
+    if (!artifact) return;
+    const blob = new Blob([this.selectedContent()], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = this.artifactFileName(artifact);
+    link.click();
+    URL.revokeObjectURL(url);
+    this.workspaceMessage.set(`Downloaded ${artifact.name}.`);
+  }
+
+  regenerateWorkspace() {
+    const artifact = this.selected();
+    this.workspaceMessage.set("Refreshing generated artifacts from the workspace API.");
+    this.loadWorkspace(artifact?.id);
+  }
+
+  artifactFileName(artifact: Artifact) {
+    const extensionByLanguage: Record<Artifact["language"], string> = { markdown: "md", yaml: "yaml", json: "json", terraform: "tf", mermaid: "mmd", text: "txt" };
+    const baseName = (artifact.name || artifact.type || "artifact").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "artifact";
+    return `${baseName}.${extensionByLanguage[artifact.language] ?? "txt"}`;
   }
 }
 @Component({ selector: "app-security", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
