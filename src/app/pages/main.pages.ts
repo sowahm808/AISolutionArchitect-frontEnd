@@ -27,6 +27,10 @@ const META = {
   risks: ["Risk Assessment", "Prioritized migration and architecture risk register.", "", ""],
   cost: ["Cost Estimate", "Monthly, yearly and category-level estimates with assumptions.", "", ""],
   presentation: ["Executive Presentation Preview", "Board-ready narrative and slide outline.", "", ""],
+  export: ["Export Center", "Download architecture packs, generated artifacts, and presentation assets.", "", ""],
+  organization: ["Organization", "Manage organization profile, tenant settings, and architecture governance defaults.", "", ""],
+  users: ["Users", "Manage workspace access, roles, and project collaboration permissions.", "", ""],
+  auditLogs: ["Audit Logs", "Review administrative and workspace activity across the organization.", "", ""],
   simple: ["Workspace", "Enterprise architecture content.", "", ""],
 } as const;
 
@@ -254,4 +258,10 @@ export class CostComponent extends MaterialPageBase implements OnInit { override
 @Component({ selector: "app-presentation", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
 export class PresentationComponent extends MaterialPageBase implements OnInit { override page = "presentation"; private readonly review = inject(ReviewService); ngOnInit() { this.review.presentation(this.projectId()).pipe(catchError((e) => this.handleError(e))).subscribe((slides) => this.slides.set(slides ?? [])); } }
 @Component({ selector: "app-simple", standalone: true, imports: MAIN_IMPORTS, templateUrl: "./main.pages.html", styleUrl: "./main.pages.css" })
-export class SimplePageComponent extends MaterialPageBase { override page = "simple"; }
+export class SimplePageComponent extends MaterialPageBase implements OnInit {
+  override page = "simple";
+
+  ngOnInit() {
+    this.page = this.route.snapshot.data["simplePage"] ?? "simple";
+  }
+}
