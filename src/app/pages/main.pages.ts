@@ -18,6 +18,11 @@ const META = {
   discovery: ["Discovery Interview", "Structured senior architect discovery, not a chatbot.", "", ""],
   model: ["Architecture Model", "Canonical model used to generate all artifacts.", "", ""],
   artifacts: ["Artifact Workspace", "Review, edit, regenerate, copy and download architecture outputs.", "", ""],
+  diagrams: ["Diagrams", "Review, edit, regenerate, copy and download generated architecture diagrams.", "", ""],
+  adrs: ["ADRs", "Review, edit, regenerate, copy and download architecture decision records.", "", ""],
+  infrastructure: ["Infrastructure", "Review, edit, regenerate, copy and download infrastructure-as-code artifacts.", "", ""],
+  kubernetes: ["Kubernetes", "Review, edit, regenerate, copy and download Kubernetes manifests.", "", ""],
+  cicd: ["CI/CD", "Review, edit, regenerate, copy and download CI/CD pipeline artifacts.", "", ""],
   security: ["Security Review", "Identity, network, encryption, secrets, RBAC, compliance and threat model.", "", ""],
   risks: ["Risk Assessment", "Prioritized migration and architecture risk register.", "", ""],
   cost: ["Cost Estimate", "Monthly, yearly and category-level estimates with assumptions.", "", ""],
@@ -72,6 +77,8 @@ class MaterialPageBase {
   get subtitle() { return META[this.page as keyof typeof META][1]; }
   get actionLink() { return META[this.page as keyof typeof META][2]; }
   get actionLabel() { return META[this.page as keyof typeof META][3]; }
+  get isArtifactWorkspacePage() { return ["artifacts", "diagrams", "adrs", "infrastructure", "kubernetes", "cicd"].includes(this.page); }
+  get artifactListTitle() { return this.page === "artifacts" ? "Artifact types" : `${this.title} artifacts`; }
 
   protected loadProject() {
     const id = this.projectId();
@@ -139,8 +146,16 @@ export class ArchitectureModelComponent extends MaterialPageBase implements OnIn
 export class ArtifactsComponent extends MaterialPageBase implements OnInit {
   override page = "artifacts";
   private readonly artifactService = inject(ArtifactService);
+  private readonly artifactTypeByPage: Record<string, string[]> = {
+    diagrams: ["c4_container_diagram", "container_diagram", "diagram"],
+    adrs: ["adr", "architecture_decision_record"],
+    infrastructure: ["terraform", "infrastructure"],
+    kubernetes: ["kubernetes_manifest", "kubernetes"],
+    cicd: ["github_actions_pipeline", "ci_cd", "cicd", "pipeline"],
+  };
 
   ngOnInit() {
+    this.page = this.route.snapshot.data["artifactPage"] ?? "artifacts";
     this.loadWorkspace();
   }
 
@@ -151,10 +166,20 @@ export class ArtifactsComponent extends MaterialPageBase implements OnInit {
       catchError((e) => this.handleError(e)),
       finalize(() => this.loading.set(false)),
     ).subscribe((workspace) => {
-      const artifacts = workspace?.artifacts ?? [];
+      const artifacts = this.filterArtifactsForPage(workspace?.artifacts ?? []);
       this.artifacts.set(artifacts);
       this.selectArtifact(artifacts.find((artifact) => artifact.id === preferredArtifactId) ?? artifacts[0] ?? null);
     });
+  }
+
+  private filterArtifactsForPage(artifacts: Artifact[]) {
+    const allowedTypes = this.artifactTypeByPage[this.page];
+    if (!allowedTypes) return artifacts;
+    return artifacts.filter((artifact) => allowedTypes.includes(this.normalizeArtifactType(artifact.type)));
+  }
+
+  private normalizeArtifactType(type: string) {
+    return type.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/(^_|_$)/g, "");
   }
 
   selectArtifact(artifact: Artifact | null) {

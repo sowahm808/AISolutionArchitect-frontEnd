@@ -13,11 +13,11 @@
 
 <ng-container *ngIf="page === 'model'"><section class="grid"><mat-card *ngFor="let s of sections()"><mat-card-title>{{ s[0] }}</mat-card-title><mat-card-content>{{ s[1] }}</mat-card-content></mat-card></section><app-risk-table [risks]="model()?.risks ?? []" /></ng-container>
 
-<section *ngIf="page === 'artifacts'" class="workspace">
+<section *ngIf="isArtifactWorkspacePage" class="workspace">
   <mat-card class="artifact-list-card">
-    <mat-card-title>Artifact types</mat-card-title>
+    <mat-card-title>{{ artifactListTitle }}</mat-card-title>
     <mat-card-content *ngIf="loading()">Loading workspace artifacts…</mat-card-content>
-    <mat-card-content *ngIf="!loading() && !artifacts().length">No artifact workspace rows were returned. Generate an architecture model first.</mat-card-content>
+    <mat-card-content *ngIf="!loading() && !artifacts().length">No {{ title | lowercase }} artifacts were returned. Generate an architecture model first.</mat-card-content>
     <mat-nav-list *ngIf="artifacts().length">
       <button mat-list-item *ngFor="let a of artifacts()" [class.artifact-list-card__item--active]="selected()?.id === a.id" (click)="selectArtifact(a)">
         <span matListItemTitle>{{ a.name }}</span>
