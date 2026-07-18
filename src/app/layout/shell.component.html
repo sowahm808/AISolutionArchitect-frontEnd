@@ -6,7 +6,7 @@
     </mat-toolbar>
 
     <mat-nav-list class="shell__nav-list" aria-label="Primary navigation">
-      <a mat-list-item *ngFor="let n of primaryNav()" [routerLink]="navPath(n)" routerLinkActive="active">
+      <a mat-list-item *ngFor="let n of primaryNav(); trackBy: trackNavItem" [routerLink]="navPath(n)" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <mat-icon matListItemIcon aria-hidden="true">{{ n.icon }}</mat-icon>
         <span matListItemTitle>{{ n.label }}</span>
       </a>
@@ -21,9 +21,11 @@
     <mat-nav-list class="shell__nav-list shell__nav-list--project" aria-label="Project workspace navigation">
       <a
         mat-list-item
-        *ngFor="let n of projectNav()"
+        *ngFor="let n of projectNav(); trackBy: trackNavItem"
         [routerLink]="navPath(n)"
         routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="keepDisabledProjectNavInPlace($event)"
         [class.disabled]="projectNavDisabled()"
         [attr.aria-disabled]="projectNavDisabled()"
       >
